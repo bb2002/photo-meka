@@ -23,12 +23,18 @@ class ExifDateParser implements IPhotoMekaDateParser {
             throw new Error("File not exist EXIF Date")
         }
 
-        console.log(dateTimeString)
+        dateTimeString = dateTimeString.replace(/:/gi,"")
+        dateTimeString = dateTimeString.replace(/ /gi,"")
+        let newMoment = moment(`${dateTimeString.substr(0, 8)} ${dateTimeString.substr(8, 8)}`)
 
-        return {
-            source: EResource.EXIF,
-            date: moment()
-        } as IPhotoMekaDateResponse
+        if(newMoment.isValid()) {
+            return {
+                source: EResource.EXIF,
+                date: newMoment
+            } as IPhotoMekaDateResponse
+        } else {
+            throw new Error("EXIF Date parsing failed.")
+        }
     }
 }
 

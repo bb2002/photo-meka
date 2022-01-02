@@ -4,6 +4,8 @@ import { SUPPORT_EXTENSION } from "./Constants"
 import printer from "./Printer"
 import fs from "fs"
 import path from "path"
+import moment from "moment"
+import { editBTime, moveFile } from "./PhotoMekaService"
 
 class PhotoMeka {
     parserPlugins: IPhotoMekaDateParser[] = []              // 파서 플러그인 배열
@@ -104,29 +106,55 @@ class PhotoMeka {
 
             if(parsedDate) {
                 // 날짜 파싱에 성공한 경우
-                printer.log(`[${i+1}/${this.beforeFiles.length}]`)
+                if(this.mekaSettings.alterBTime) {
+                    editBTime(this.beforeFiles[i], parsedDate.date)
+                }
 
+                moveFile(this.beforeFiles[i], parsedDate.date, this.mekaSettings)
+                printer.success(`[${i+1}/${this.beforeFiles.length}] ${path.basename(this.beforeFiles[i])} file edited ${parsedDate.date.format("YYYY.MM.DD HH:mm:ss")}`)
             } else {
                 // 날짜 파싱에 실패한 경우
                 if(this.mekaSettings.inferenceFailedMethod === ENoInferenceMethod.LAST_QUESTION) {
                     this.inferenceFailFiles.push(this.beforeFiles[i])
+                    printer.log(`[${i+1}/${this.beforeFiles.length}] parsing failed rejection count: ${this.inferenceFailFiles.length}`)
                 }
 
                 if(this.mekaSettings.inferenceFailedMethod === ENoInferenceMethod.LIVE_QUESTION) {
                     this.inferenceFailFiles.push(this.beforeFiles[i])
-                    this.userInputDate()
+                    this.resolveInferenceFailedFiles()
                 }
             }
-
         }
+
+        if(this.mekaSettings.inferenceFailedMethod === ENoInferenceMethod.LAST_QUESTION) {
+            // 마지막에 추론 실패 파일을 정리한다.
+            await this.resolveInferenceFailedFiles()
+        }
+
+        printer.success(`파일 정리를 완료했습니다. 총 파일 ${this.beforeFiles.length}개, 수동 추론 ${this.inferenceFailFiles.length} 개`)
     }
 
     /**
-     * 새로운 날짜를 물어본다.
+     * 추론 실패한 파일을 정리한다.
      */
-    async userInputDate() {
+    async resolveInferenceFailedFiles() {
         for(let i = 0; i < this.inferenceFailFiles.length; ++i) {
+            const ifFile = this.inferenceFailFiles[i]
+            let newMoment: moment.Moment = undefined
+            do {
+                const userInDate = await printer.question(`${path.basename(ifFile)} 파일의 날짜를 추론 할 수 없습니다.`, "날짜를 입력하세요: ", "포맷: YYYY-MM-DD HH:mm:ss")
+                newMoment = moment(userInDate)
 
+                if(!newMoment.isValid()) {
+                    newMoment = undefined
+                    printer.error("날짜 포맷이 일치하지 않습니다. 다시 입력하십시오.")
+                }
+            } while(newMoment === undefined)
+            
+            if(this.mekaSettings.alterBTime) {
+                editBTime(ifFile, newMoment)
+            }
+            moveFile(ifFile, newMoment, this.mekaSettings)
         }
     }
 }
