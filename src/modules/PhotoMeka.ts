@@ -92,16 +92,14 @@ class PhotoMeka {
                 try {
                     let newParsedDate = await this.parserPlugins[j].parser(this.beforeFiles[i], this.mekaSettings)
 
-                    if(parsedDate) {
+                    if(parsedDate !== undefined) {
                         if(this.mekaSettings.resourceTrustPriorityToNumber(parsedDate.source) > this.mekaSettings.resourceTrustPriorityToNumber(newParsedDate.source)) {
                             parsedDate = newParsedDate
                         }
                     } else {
                         parsedDate = newParsedDate
                     }
-                } catch(ex) {
-                    parsedDate = undefined
-                }
+                } catch(ex) {}
             }
 
             if(parsedDate) {

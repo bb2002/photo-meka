@@ -23,7 +23,8 @@ class ExifDateParser implements IPhotoMekaDateParser {
 
         // Timestamp 형태
         if(filenameOnlyNum.length === 13) {
-            response.date = moment.unix(Number(filenameOnlyNum))
+            response.date = moment(Number(filenameOnlyNum))
+            console.log(response.date.format("YYYY-MM-DD HH:mm:ss"))
             if(this.checkIsValidMoment(response.date)) return response
         }
 

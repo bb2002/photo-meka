@@ -14,13 +14,10 @@ class ExifDateParser implements IPhotoMekaDateParser {
 
         const tags = await ExifReader.load(filePath as any)
 
-        console.log(tags)
-
         let dateTimeString = undefined
-        if(tags['DateTimeOriginal']?.description) {
+        if(tags['DateTimeOriginal']?.description.length !== 0) {
             dateTimeString = tags['DateTimeOriginal']?.description
-        } else if(tags['DateTime']?.description) {
-            console.log("tags['DateTime']?.description", tags['DateTime']?.description)
+        } else if(tags['DateTime']?.description.length !== 0) {
             dateTimeString = tags['DateTime']?.description
         } else {
             throw new Error("File not exist EXIF Date")

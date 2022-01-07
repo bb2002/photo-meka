@@ -5,7 +5,7 @@ import { PhotoMekaSetting } from "../interfaces/PhotoMekaTypes";
 import { utimes } from "utimes";
 
 export function moveFile(targetFile: string, date: moment.Moment, mekaSettings: PhotoMekaSetting) {
-    const newPath = path.join(mekaSettings.outputPath, date.format("YYYY.MM"))
+    const newPath = path.join(mekaSettings.outputPath, date.format("YYYY. MM"))
 
     if(!fs.existsSync(newPath)) {
         fs.mkdirSync(newPath, { recursive: true })       // 폴더가 없다면 새로 만듭니다.
