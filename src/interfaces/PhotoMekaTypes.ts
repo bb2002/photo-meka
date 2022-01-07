@@ -100,15 +100,19 @@ export class PhotoMekaSetting {
                 "대상 폴더의 위치를 결정합니다. 다중 탐색을 지원합니다.",
                 "폴더의 경로를 입력: "
             )
-            
-            try {
-                const newPath = path.resolve(ans)
-                fs.accessSync(newPath, fs.constants.X_OK)
-                this.targetPath = newPath
-            } catch(ex) {
-                printer.error(ex.message)
-                this.targetPath = undefined
+
+            if(ans) {
+                try {
+                    const newPath = path.resolve(ans)
+                    fs.accessSync(newPath, fs.constants.X_OK)
+                    this.targetPath = newPath
+                } catch(ex) {
+                    printer.error(ex.message)
+                    this.targetPath = undefined
+                }
             }
+            
+            
         } while(this.targetPath === undefined)
         
         do {
@@ -117,18 +121,19 @@ export class PhotoMekaSetting {
                 "폴더의 경로를 입력: "
             )
             
-            try {
-                const newPath = path.resolve(ans)
-                if(!fs.existsSync(newPath)) {
-                    fs.mkdirSync(newPath)
-                    printer.log("경로에 폴더가 존재하지 않아 만들었습니다.")
+            if(ans) {
+                try {
+                    const newPath = await path.resolve(ans)
+                    if(!fs.existsSync(newPath)) {
+                        fs.mkdirSync(newPath)
+                        printer.log("경로에 폴더가 존재하지 않아 만들었습니다.")
+                    }
+                    this.outputPath = newPath
+                } catch(ex) {
+                    printer.error(ex.message)
+                    this.outputPath = undefined
                 }
-                this.outputPath = newPath
-            } catch(ex) {
-                printer.error(ex.message)
-                this.outputPath = undefined
             }
-            
         } while(this.outputPath === undefined)
 
         try {

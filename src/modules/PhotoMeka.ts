@@ -116,7 +116,7 @@ class PhotoMeka {
                 // 날짜 파싱에 실패한 경우
                 if(this.mekaSettings.inferenceFailedMethod === ENoInferenceMethod.LAST_QUESTION) {
                     this.inferenceFailFiles.push(this.beforeFiles[i])
-                    printer.log(`[${i+1}/${this.beforeFiles.length}] parsing failed rejection count: ${this.inferenceFailFiles.length}`)
+                    printer.log(`[${i+1}/${this.beforeFiles.length}] ${path.basename(this.beforeFiles[i])} is rejected.`)
                 }
 
                 if(this.mekaSettings.inferenceFailedMethod === ENoInferenceMethod.LIVE_QUESTION) {
@@ -143,11 +143,13 @@ class PhotoMeka {
             let newMoment: moment.Moment = undefined
             do {
                 const userInDate = await printer.question(`${path.basename(ifFile)} 파일의 날짜를 추론 할 수 없습니다.`, "날짜를 입력하세요: ", "포맷: YYYY-MM-DD HH:mm:ss")
-                newMoment = moment(userInDate)
+                if(userInDate) {
+                    newMoment = moment(userInDate)
 
-                if(!newMoment.isValid()) {
-                    newMoment = undefined
-                    printer.error("날짜 포맷이 일치하지 않습니다. 다시 입력하십시오.")
+                    if(!newMoment.isValid()) {
+                        newMoment = undefined
+                        printer.error("날짜 포맷이 일치하지 않습니다. 다시 입력하십시오.")
+                    }
                 }
             } while(newMoment === undefined)
             

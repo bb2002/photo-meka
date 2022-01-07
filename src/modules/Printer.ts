@@ -24,7 +24,7 @@ class Printer {
             chalk.white(message))
     }
 
-    question(title: string, message: string, defaultValue?: string): Promise<string> {
+    async question(title: string, message: string, defaultValue?: string): Promise<string> {
         const rl = readline.createInterface({
             input: process.stdin,
             output: process.stdout,
@@ -40,11 +40,7 @@ class Printer {
         return new Promise((resolve, reject) => {
             rl.question(`${chalk.green(" ? ")} ${chalk.white(message)}`, ans => {
                 rl.close()
-                if(ans) {
-                    resolve(ans)
-                } else {
-                    reject()
-                }
+                resolve(ans ? ans : "")
             })
             
         })

@@ -12,12 +12,15 @@ class ExifDateParser implements IPhotoMekaDateParser {
             throw new Error("File extension not supported.");
         }
 
-        const tags = await ExifReader.load(Buffer.from(filePath))
+        const tags = await ExifReader.load(filePath as any)
+
+        console.log(tags)
 
         let dateTimeString = undefined
         if(tags['DateTimeOriginal']?.description) {
             dateTimeString = tags['DateTimeOriginal']?.description
         } else if(tags['DateTime']?.description) {
+            console.log("tags['DateTime']?.description", tags['DateTime']?.description)
             dateTimeString = tags['DateTime']?.description
         } else {
             throw new Error("File not exist EXIF Date")
@@ -25,7 +28,7 @@ class ExifDateParser implements IPhotoMekaDateParser {
 
         dateTimeString = dateTimeString.replace(/:/gi,"")
         dateTimeString = dateTimeString.replace(/ /gi,"")
-        let newMoment = moment(`${dateTimeString.substr(0, 8)} ${dateTimeString.substr(8, 8)}`)
+        let newMoment = moment(`${dateTimeString.substr(0, 8)} ${dateTimeString.substr(8, 6)}`)
 
         if(newMoment.isValid()) {
             return {

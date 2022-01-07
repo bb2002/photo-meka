@@ -1,36 +1,39 @@
 import { EResource, PhotoMekaSetting } from "../interfaces/PhotoMekaTypes";
 import { IPhotoMekaDateParser, IPhotoMekaDateResponse } from "../interfaces/IPhotoMekaParser";
-import ExifReader from 'exifreader';
 import path from "path"
 import moment from "moment";
 
 class ExifDateParser implements IPhotoMekaDateParser {
+    checkIsValidMoment(resultMoment: moment.Moment) {
+        return resultMoment.isValid()
+    }
+
     async parser(filePath: string, mekaSettings: PhotoMekaSetting): Promise<IPhotoMekaDateResponse> {
         let filenameOnlyNum = path.basename(filePath).replace(/\D/g,'')
-        let resultMoment: moment.Moment = undefined
+        let response = {
+            source: EResource.FILE_NAME,
+            date: undefined
+        } as IPhotoMekaDateResponse
 
         // YYYY-MM-DD HH:MM:SS 형태
-        if(filenameOnlyNum.length === 14) {
-            resultMoment = moment(`${filenameOnlyNum.substr(0, 8)} ${filenameOnlyNum.substr(8, 8)}`)
+        if(filenameOnlyNum.length >= 14) {
+            response.date = moment(`${filenameOnlyNum.substr(0, 8)} ${filenameOnlyNum.substr(8, 6)}`)
+            if(this.checkIsValidMoment(response.date)) return response
+        }
+
+        // Timestamp 형태
+        if(filenameOnlyNum.length === 13) {
+            response.date = moment.unix(Number(filenameOnlyNum))
+            if(this.checkIsValidMoment(response.date)) return response
         }
 
         // YYYY-MM-DD 형태
         if(filenameOnlyNum.length === 8) {
-            resultMoment = moment(filenameOnlyNum)
+            response.date = moment(`${filenameOnlyNum.substr(0, 8)}`)
+            if(this.checkIsValidMoment(response.date)) return response
         }
 
-        if(filenameOnlyNum.length > 14) {
-            resultMoment = moment(filenameOnlyNum.substr(0, 14))
-        }
-
-        if(resultMoment && resultMoment.isValid()) {
-            return {
-                source: EResource.FILE_NAME,
-                date: resultMoment
-            } as IPhotoMekaDateResponse
-        } else {
-            throw new Error("Parsing from filename failed.")
-        }
+        throw new Error("Parsing from filename failed.")
     }
 }
 
